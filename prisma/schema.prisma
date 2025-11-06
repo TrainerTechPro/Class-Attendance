@@ -1,0 +1,46 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model Class {
+  id          String            @id @default(cuid())
+  name        String
+  code        String            @unique
+  createdAt   DateTime          @default(now())
+  sessions    AttendanceSession[]
+}
+
+model AttendanceSession {
+  id          String      @id @default(cuid())
+  classId     String
+  class       Class       @relation(fields: [classId], references: [id], onDelete: Cascade)
+  date        DateTime    @default(now())
+  startTime   DateTime    @default(now())
+  endTime     DateTime?
+  isActive    Boolean     @default(true)
+  records     AttendanceRecord[]
+  createdAt   DateTime    @default(now())
+
+  @@index([classId])
+}
+
+model AttendanceRecord {
+  id          String            @id @default(cuid())
+  sessionId   String
+  session     AttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  studentName String
+  latitude    Float
+  longitude   Float
+  timestamp   DateTime          @default(now())
+  isValid     Boolean           @default(true) // Whether location was within campus bounds
+
+  @@index([sessionId])
+  @@unique([sessionId, studentName])
+}
